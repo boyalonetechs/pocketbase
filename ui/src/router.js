@@ -1,5 +1,6 @@
 import { pageSuperuserLogin } from "@/auth/pageSuperuserLogin";
 import { pageCollections } from "@/collections/pageCollections";
+import { pageSQLEditor } from "@/collections/pageSQLEditor";
 import { pageLogs } from "@/logs/pageLogs";
 import { pageApplicationSettings } from "@/settings/application/pageApplicationSettings";
 import { pageBackupsSettings } from "@/settings/backups/pageBackupsSettings";
@@ -172,3 +173,4 @@ app.routes.superuserOnly("#/settings/crons", pageCronsSettings);
 app.routes.superuserOnly("#/settings/export-collections", pageExportCollections);
 app.routes.superuserOnly("#/settings/import-collections", pageImportCollections);
 app.routes.superuserOnly("#/settings/sql", pageSQLConsole);
+app.routes.superuserOnly("#/collections/sql-editor", pageSQLEditor);

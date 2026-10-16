@@ -17,6 +17,7 @@ import "./base/sortable";
 import "./base/copyButton";
 import "./base/codeBlock";
 import "./base/codeEditor";
+import "./base/sqlHighlight";
 import "./base/codeBlockTabs";
 import "./base/select";
 import "./base/formattedDate";

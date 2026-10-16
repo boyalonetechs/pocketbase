@@ -12,6 +12,9 @@ coverage.out
 # plaintask todo files
 *.todo
 
+# editor backups
+*.bak
+
 # generated markdown previews
 README.html
 CHANGELOG.html

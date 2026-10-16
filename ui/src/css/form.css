@@ -1131,6 +1131,26 @@ button {
         }
     }
 
+    .code-editor-line-numbers {
+        position: sticky;
+        left: 0;
+        z-index: 3;
+        flex-shrink: 0;
+        align-self: stretch;
+        margin: 0;
+        padding: 0 8px 0 0;
+        text-align: right;
+        user-select: none;
+        pointer-events: none;
+        color: var(--sqlParamColor);
+        opacity: 0.75;
+        background: transparent;
+        font-family: var(--monospaceFontFamily);
+        font-size: 0.96rem;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
     &.single-line {
         align-items: center;
         min-height: 0;

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PocketBase SQL Editor - Documentation</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #f6f7f9;
+            --surface: #ffffff;
+            --txt: #1d1f25;
+            --txt-hint: #6b7280;
+            --border: #e2e5ea;
+            --accent: #1668dc;
+            --code-bg: #f0f2f5;
+            --green: #15803d;
+            --red: #dc2626;
+            --blue: #1d4ed8;
+            --magenta: #a21caf;
+            --maroon: #7f1d1d;
+            --teal: #0d9488;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #14151a;
+                --surface: #1c1e24;
+                --txt: #e8eaed;
+                --txt-hint: #9aa2ad;
+                --border: #2c2f37;
+                --accent: #4c8dff;
+                --code-bg: #24272e;
+                --green: #4ade80;
+                --red: #f87171;
+                --blue: #60a5fa;
+                --magenta: #e879f9;
+                --maroon: #fca5a5;
+                --teal: #2dd4bf;
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 40px 20px 80px;
+            background: var(--bg);
+            color: var(--txt);
+            font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .wrap { max-width: 860px; margin: 0 auto; }
+        h1 { font-size: 1.9rem; margin: 0 0 6px; }
+        h2 { font-size: 1.25rem; margin: 34px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+        h3 { font-size: 1.02rem; margin: 22px 0 8px; }
+        p, li { color: var(--txt); }
+        .lead { color: var(--txt-hint); margin-top: 0; }
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.88em;
+        }
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            overflow: auto;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.86em;
+            line-height: 1.5;
+        }
+        pre code { background: none; padding: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.92em; }
+        th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+        th { color: var(--txt-hint); font-weight: 600; }
+        .pill {
+            display: inline-block; padding: 1px 8px; border-radius: 20px;
+            background: var(--code-bg); font-size: 0.8em; font-family: ui-monospace, monospace;
+        }
+        .note {
+            border-left: 3px solid var(--accent);
+            background: color-mix(in srgb, var(--accent), transparent 92%);
+            padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 14px 0;
+        }
+        .legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; margin: 12px 0; }
+        .legend div { display: flex; align-items: center; gap: 8px; }
+        .swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border); flex-shrink: 0; }
+        a { color: var(--accent); }
+        .back { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; }
+        .back:hover { text-decoration: underline; }
+        .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; }
+        .toc ul { margin: 6px 0; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <a class="back" href="/_/">&#8592; Back to PocketBase</a>
+        <h1>SQL Editor</h1>
+        <p class="lead">A superuser-only workspace for running SQL and managing PocketBase collections and fields. No prior SQL experience required &mdash; this page explains everything step by step.</p>
+
+        <div class="toc">
+            <strong>On this page</strong>
+            <ul>
+                <li><a href="#opening">Opening the SQL Editor</a></li>
+                <li><a href="#quick-start">Quick start</a></li>
+                <li><a href="#statements">How statements are handled</a></li>
+                <li><a href="#running">Writing and running queries</a></li>
+                <li><a href="#shortcuts">Editor keyboard shortcuts</a> &amp; <a href="#comments">comments</a></li>
+                <li><a href="#creating">Creating collections</a></li>
+                <li><a href="#field-types">PocketBase field types</a></li>
+                <li><a href="#altering">Altering &amp; <a href="#dropping">dropping</a> collections</a></li>
+                <li><a href="#results">Results</a></li>
+                <li><a href="#history">History</a></li>
+                <li><a href="#syntax">Syntax colors</a></li>
+                <li><a href="#safety">Safety and confirmations</a></li>
+                <li><a href="#cheatsheet">Command cheat sheet</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </div>
+
+        <h2 id="opening">Opening the SQL Editor</h2>
+        <ol>
+            <li>Log in to the Dashboard as a <strong>superuser</strong> (an admin-style account).</li>
+            <li>Open <strong>Collections</strong> in the left sidebar.</li>
+            <li>Click the <strong>SQL Editor</strong> button (the terminal icon) at the bottom of the sidebar.</li>
+        </ol>
+        <p>You can also go directly to <code>/_/#/collections/sql-editor</code>.</p>
+        <div class="note">The SQL Editor is only visible to superusers. Regular app users can never open it.</div>
+
+        <h2 id="quick-start">Quick start</h2>
+        <p>Type a query in the editor and press <strong>Ctrl+Enter</strong> (or <strong>Cmd+Enter</strong> on macOS):</p>
+        <pre><code>SELECT * FROM posts;</code></pre>
+        <p>The results appear in a table <strong>below</strong> the editor. If the table has image/file columns they are shown as thumbnails (see <a href="#results">Results</a>).</p>
+        <ul>
+            <li>Every statement ends with a semicolon <code>;</code>.</li>
+            <li>Query strings in this editor are <strong>case-insensitive</strong> &mdash; <code>select</code> and <code>SELECT</code> are the same.</li>
+            <li>Queries that change data ask for confirmation before running.</li>
+            <li>Only superusers can run anything here, so use it carefully.</li>
+        </ul>
+
+        <h2 id="statements">How statements are handled</h2>
+        <p>Most statements run as raw SQL. A few are translated into <strong>native PocketBase operations</strong> so that your schema stays consistent (visible in the Collections sidebar, the REST API, filters, relations, and so on).</p>
+        <table>
+            <thead><tr><th>Statement</th><th>What happens</th></tr></thead>
+            <tbody>
+                <tr><td><code>SELECT ...</code></td><td>Raw query. Results are shown in a table below the editor (max 1000 rows).</td></tr>
+                <tr><td><code>INSERT / UPDATE / DELETE</code></td><td>Raw execution. The number of affected rows is reported.</td></tr>
+                <tr><td><code>CREATE TABLE ...</code></td><td>Creates a <strong>native PocketBase collection</strong> (with native fields).</td></tr>
+                <tr><td><code>DROP TABLE ...</code></td><td>Deletes the matching native collection (falls back to raw SQL otherwise).</td></tr>
+                <tr><td><code>ALTER TABLE ... ADD COLUMN</code></td><td>Adds a native field to an existing collection.</td></tr>
+                <tr><td><code>ALTER TABLE ... DROP COLUMN</code></td><td>Removes a native field from an existing collection.</td></tr>
+                <tr><td>Everything else</td><td>Executed as raw SQL (PRAGMA, ANALYZE, VACUUM, etc.).</td></tr>
+            </tbody>
+        </table>
+        <div class="note"><strong>Why does this matter?</strong> If you created tables with plain SQLite, the Dashboard would not know about them. By turning <code>CREATE TABLE</code> / <code>ALTER TABLE</code> into native PocketBase operations, the created collections show up everywhere in the app, just as if you had created them through the Dashboard UI.</div>
+
+        <h2 id="running">Writing and running queries</h2>
+        <h3>Run everything</h3>
+        <ul>
+            <li>Click the <strong>Run</strong> button (the play icon) in the page header, <strong>or</strong></li>
+            <li>press <strong>Ctrl+Enter</strong> / <strong>Cmd+Enter</strong> inside the editor.</li>
+        </ul>
+        <h3>Run only part of the editor</h3>
+        <p>This is handy when you have several statements and only want to test one of them.</p>
+        <ol>
+            <li>Highlight (select) the text you want to run.</li>
+            <li>Click <strong>Run</strong> &mdash; when text is selected the button label changes to <strong>Run Selected</strong> &mdash; <strong>or</strong> press <strong>Ctrl+Enter</strong>.</li>
+        </ol>
+        <p>You can also click the small <strong>arrow (&#9662;)</strong> next to the Run button to open a menu with two choices:</p>
+        <ul>
+            <li><strong>Run</strong> &mdash; runs the whole editor.</li>
+            <li><strong>Run Selected</strong> &mdash; runs only the highlighted text. This option is greyed out until you highlight something.</li>
+        </ul>
+        <div class="note">Selecting text and running only that selection <strong>does not change</strong> what is stored in the editor &mdash; the full query stays in place after the selection finishes running.</div>
+
+        <h2 id="shortcuts">Editor keyboard shortcuts</h2>
+        <table>
+            <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr><td><code>Ctrl+Enter</code> / <code>Cmd+Enter</code></td><td>Run the query (or the selection, if any)</td></tr>
+                <tr><td><code>Ctrl+/</code></td><td>Comment / uncomment the current line or selection (see below)</td></tr>
+                <tr><td><code>Ctrl+Z</code></td><td>Undo</td></tr>
+                <tr><td><code>Ctrl+Y</code> or <code>Ctrl+Shift+Z</code></td><td>Redo</td></tr>
+                <tr><td><code>Ctrl+L</code></td><td>Select the current line</td></tr>
+                <tr><td><code>Ctrl+D</code></td><td>Select the word at the cursor</td></tr>
+                <tr><td><code>Tab</code></td><td>Indent the current line / selection</td></tr>
+                <tr><td><code>Shift+Tab</code></td><td>Un-indent the current line / selection</td></tr>
+                <tr><td><code>Esc</code></td><td>Leave the editor</td></tr>
+            </tbody>
+        </table>
+        <div class="note">The editor keeps its own undo history, so <strong>Ctrl+Z / Ctrl+Y work reliably</strong> even after commenting, indenting or using autocomplete.</div>
+
+        <h3 id="comments">Comments</h3>
+        <p>Comments are notes that the database ignores. Use them to explain your queries or to temporarily disable a statement.</p>
+        <p><strong>Single line:</strong> press <code>Ctrl+/</code> with the cursor on one line (or a selection inside a single line). The line is prefixed with <code>//</code>:</p>
+        <pre><code>// SELECT * FROM posts;</code></pre>
+        <p><strong>Multiple lines:</strong> highlight more than one line and press <code>Ctrl+/</code>. The whole block is wrapped in a <code>/* ... */</code> comment:</p>
+        <pre><code>/* CREATE TABLE images (
+    posts TEXT,
+    avatar FILE,
+    images FILE,
+    interests SELECT(football, Gaming, Coding)
+); */</code></pre>
+        <p>Press <code>Ctrl+/</code> again on the same text to remove the comment.</p>
+
+        <h2 id="creating">Creating collections</h2>
+        <p>Use <code>CREATE TABLE</code> to create a new collection:</p>
+        <pre><code>CREATE TABLE posts (
+    title TEXT,
+    content TEXT,
+    views INTEGER DEFAULT 0
+);</code></pre>
+        <p>Because <code>CREATE TABLE</code> produces a <strong>native collection</strong>, <code>posts</code> immediately appears in the Collections sidebar and is available through the Records API.</p>
+        <div class="note">PocketBase automatically adds the system fields <code>id</code>, <code>created</code> and <code>updated</code> to every collection, so you do not need to define them yourself.</div>
+
+        <h2 id="field-types">PocketBase field types</h2>
+        <p>Besides the standard SQL types, column definitions may use PocketBase-specific type keywords so you can create any field type supported by the Dashboard:</p>
+        <table>
+            <thead><tr><th>Keyword</th><th>Field type</th><th>Options / example</th></tr></thead>
+            <tbody>
+                <tr><td><code>TEXT(500)</code></td><td>Plain text</td><td>optional max length</td></tr>
+                <tr><td><code>EDITOR</code> / <code>RICH</code> / <code>HTML</code></td><td>Rich text editor</td><td></td></tr>
+                <tr><td><code>NUMBER</code>, <code>INTEGER</code>, <code>REAL</code></td><td>Number</td><td><code>INTEGER</code> is integer-only</td></tr>
+                <tr><td><code>BOOL</code> / <code>BOOLEAN</code></td><td>Bool</td><td></td></tr>
+                <tr><td><code>EMAIL</code></td><td>Email</td><td></td></tr>
+                <tr><td><code>URL</code></td><td>URL</td><td></td></tr>
+                <tr><td><code>DATE</code> / <code>DATETIME</code></td><td>Date</td><td></td></tr>
+                <tr><td><code>AUTODATE</code></td><td>Autodate</td><td>auto set on create</td></tr>
+                <tr><td><code>FILE</code></td><td>File</td><td></td></tr>
+                <tr><td><code>RELATION(collection)</code></td><td>Relation</td><td><code>RELATION(posts)</code>, optional max select as 2nd arg</td></tr>
+                <tr><td><code>SELECT(a,b,c)</code></td><td>Select</td><td>comma separated values</td></tr>
+                <tr><td><code>JSON</code></td><td>JSON</td><td></td></tr>
+                <tr><td><code>GEOPOINT</code> / <code>GEO</code></td><td>Geo Point</td><td></td></tr>
+                <tr><td><code>PASSWORD</code></td><td>Password</td><td></td></tr>
+            </tbody>
+        </table>
+        <p>Constraints such as <code>NOT NULL</code> and <code>PRIMARY KEY</code> are recognised and mapped to the field <code>required</code> option.</p>
+        <pre><code>CREATE TABLE articles (
+    title TEXT NOT NULL,
+    cover FILE,
+    author RELATION(users),
+    status SELECT(draft, published),
+    tags SELECT(news, tech, life),
+    location GEOPOINT,
+    meta JSON,
+    published_at AUTODATE
+);</code></pre>
+
+        <h2 id="altering">Altering collections</h2>
+        <pre><code>-- add a native field
+ALTER TABLE articles ADD COLUMN summary TEXT;
+
+-- add a PocketBase specific field
+ALTER TABLE articles ADD COLUMN thumbnail FILE;
+
+-- remove a field
+ALTER TABLE articles DROP COLUMN summary;</code></pre>
+        <p>System fields (<code>id</code>, <code>created</code>, <code>updated</code>) cannot be removed.</p>
+
+        <h2 id="dropping">Dropping collections</h2>
+        <pre><code>DROP TABLE articles;</code></pre>
+        <div class="note">Dropping a collection also deletes <strong>all of its records</strong>. This cannot be undone.</div>
+
+        <h2 id="results">Results</h2>
+        <p><code>SELECT</code> results are rendered in a table below the editor:</p>
+        <ul>
+            <li>The <code>id</code> column is <strong>always shown first</strong>, no matter where it is in your query.</li>
+            <li>Click a column header to <strong>sort</strong> the results by that column (click again to reverse).</li>
+            <li>Only the first 250 rows are shown at first. If there are more, a <strong>Load remaining</strong> button appears at the bottom of the table. At most <strong>1000 rows</strong> are returned per query.</li>
+            <li>A <strong>Export as CSV</strong> button appears below the table once there are rows. It downloads the current result as a <code>.csv</code> file that you can open in Excel, Google Sheets, etc.</li>
+        </ul>
+        <h3>Images and files</h3>
+        <ul>
+            <li><strong>PocketBase file fields</strong> &mdash; when the query selects from a collection (eg. <code>SELECT * FROM posts</code>), file columns are resolved to their real file URL and shown as clickable image cards (identical to the Collections table, including the preview modal). Your query must include the record <code>id</code> column for this to work (eg. <code>SELECT * FROM posts</code> rather than selecting only a few columns).</li>
+            <li><strong>Image URLs / data URIs</strong> &mdash; any other value that looks like an image (a full URL, a relative path ending in an image extension, or a <code>data:image/...</code> URI) is shown as a thumbnail, with a text fallback if the image fails to load.</li>
+        </ul>
+
+        <h2 id="history">History</h2>
+        <p>Your recently executed queries are stored <strong>locally in your browser</strong> (last 15) and can be re-run from the <strong>history menu</strong> (the clock icon in the page header). Click an entry to load it back into the editor, or use the small <strong>Clear</strong> link to remove an entry.</p>
+        <div class="note">History is kept in your browser only &mdash; it is never sent to the server and is not shared with other users.</div>
+
+        <h2 id="syntax">Syntax colors</h2>
+        <p>The editor uses an SSMS-inspired color scheme to make queries easier to read:</p>
+        <div class="legend">
+            <div><span class="swatch" style="background:#0000ff"></span> Blue &mdash; keywords</div>
+            <div><span class="swatch" style="background:#008000"></span> Dark green &mdash; comments</div>
+            <div><span class="swatch" style="background:#ff0000"></span> Red &mdash; strings / text literals</div>
+            <div><span class="swatch" style="background:#008000"></span> Green &mdash; system schemas (<code>sys</code>, <code>INFORMATION_SCHEMA</code>)</div>
+            <div><span class="swatch" style="background:#ff00ff"></span> Magenta &mdash; functions</div>
+            <div><span class="swatch" style="background:#800000"></span> Maroon &mdash; stored procedures (<code>sp_*</code>, <code>xp_*</code>)</div>
+            <div><span class="swatch" style="background:#008080"></span> Teal &mdash; line numbers and parameters</div>
+            <div><span class="swatch" style="background:#808080"></span> Dark gray &mdash; operators</div>
+            <div><span class="swatch" style="background:#c0c0c0"></span> Black on silver &mdash; SQLCMD commands</div>
+        </div>
+
+        <h2 id="safety">Safety and confirmations</h2>
+        <ul>
+            <li>Queries that may modify data or the schema &mdash; <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>CREATE</code>, <code>DROP</code>, <code>ALTER</code>, <code>REPLACE</code> &mdash; show a confirmation prompt before running.</li>
+            <li>Queries time out after <strong>3 minutes</strong>.</li>
+            <li>Read-only <code>SELECT</code> queries run without a confirmation prompt.</li>
+        </ul>
+
+        <h2 id="cheatsheet">Command cheat sheet</h2>
+        <pre><code>-- read data
+SELECT * FROM posts;
+SELECT id, title FROM posts WHERE views > 100 ORDER BY created DESC;
+
+-- create a collection
+CREATE TABLE notes (title TEXT, body EDITOR, done BOOL);
+
+-- add / remove a field
+ALTER TABLE notes ADD COLUMN priority SELECT(low, medium, high);
+ALTER TABLE notes DROP COLUMN priority;
+
+-- change data
+INSERT INTO notes (title, body) VALUES ('Hello', 'World');
+UPDATE notes SET done = true WHERE title = 'Hello';
+DELETE FROM notes WHERE title = 'Hello';
+
+-- list tables
+SELECT name FROM sqlite_master WHERE type = 'table';</code></pre>
+
+        <h2 id="troubleshooting">Troubleshooting</h2>
+        <p><strong>I cannot see the SQL Editor.</strong><br />You are not logged in as a superuser. Log in with a superuser account.</p>
+        <p><strong>My query runs but I do not see a table.</strong><br />Only <code>SELECT</code> statements return a result table. <code>INSERT</code> / <code>UPDATE</code> / <code>DELETE</code> report the number of affected rows instead.</p>
+        <p><strong>Only 250 rows are shown.</strong><br />Click <strong>Load remaining</strong> at the bottom of the table. A maximum of 1000 rows is returned per query.</p>
+        <p><strong>My image column shows raw text instead of a thumbnail.</strong><br />Make sure the query selects from a real collection and includes the <code>id</code> column (eg. <code>SELECT * FROM posts</code>). File fields can only be resolved when the record id is known.</p>
+        <p><strong>Ctrl+Z does nothing.</strong><br />Click inside the editor first so it has focus, then use <code>Ctrl+Z</code> to undo and <code>Ctrl+Y</code> to redo.</p>
+        <p><strong>What is the difference between <code>SELECT</code> and the other statements?</strong><br /><code>SELECT</code> reads data and shows a table. All the other statements change data or the schema, and ask for confirmation first.</p>
+    </div>
+</body>
+</html>

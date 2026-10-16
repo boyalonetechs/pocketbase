@@ -1138,6 +1138,7 @@ hr {
 .thumb {
     --thumbSize: var(--btnHeight);
 
+    position: relative;
     outline: 0;
     flex-shrink: 0;
     text-decoration: none;
@@ -1158,11 +1159,28 @@ hr {
         opacity var(--animationSpeed);
     border: 1px solid var(--surfaceAlt3Color);
 
-    img {
+    img,
+    video {
         width: 100%;
         height: auto;
         max-width: 100%;
         transition: opacity var(--animationSpeed);
+    }
+
+    video {
+        display: block;
+        object-fit: cover;
+    }
+
+    .thumb-play-overlay {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        width: 1.5em;
+        height: 1.5em;
+        color: #fff;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.65);
+        pointer-events: none;
     }
 
     &.loading {
@@ -1174,7 +1192,8 @@ hr {
         );
         background-size: 200% 100%;
         animation: shine 0.85s 0.2s linear infinite;
-        img {
+        img,
+        video {
             opacity: 0;
         }
     }

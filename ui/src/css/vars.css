@@ -82,6 +82,20 @@
     --prismCommentColor: var(--surfaceTxtHintColor);
     --prismPunctuationColor: var(--surfaceTxtColor);
 
+    /* SSMS-like SQL editor colors (light) */
+    --sqlKeywordColor: #0000ff;
+    --sqlCommentColor: #008000;
+    --sqlStringColor: #ff0000;
+    --sqlSystemColor: #008000;
+    --sqlFunctionColor: #ff00ff;
+    --sqlProcColor: #800000;
+    --sqlParamColor: #008080;
+    --sqlOperatorColor: #808080;
+    --sqlNumberColor: #000000;
+    --sqlIdentifierColor: #a31515;
+    --sqlCmdColor: #000000;
+    --sqlCmdBgColor: #c0c0c0;
+
     /* ---------------- */
 
     --modalAnimationSpeed: 200ms;
@@ -210,6 +224,20 @@
     --prismKeywordColor: #b3703d;
     --prismCommentColor: var(--surfaceTxtHintColor);
     --prismPunctuationColor: var(--surfaceTxtColor);
+
+    /* SSMS-like SQL editor colors (dark) */
+    --sqlKeywordColor: #569cd6;
+    --sqlCommentColor: #6a9955;
+    --sqlStringColor: #f48771;
+    --sqlSystemColor: #4ec9b0;
+    --sqlFunctionColor: #dcdcaa;
+    --sqlProcColor: #c586c0;
+    --sqlParamColor: #4fc1c1;
+    --sqlOperatorColor: #b0b0b0;
+    --sqlNumberColor: #b5cea8;
+    --sqlIdentifierColor: #ce9178;
+    --sqlCmdColor: #1c1c1c;
+    --sqlCmdBgColor: #a0a0a0;
 }
 
 html .accent-surface {

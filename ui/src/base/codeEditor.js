@@ -35,6 +35,7 @@ window.app.components.codeEditor = function(propsArg = {}) {
         disabled: false,
         required: false,
         singleLine: false,
+        lineNumbers: false,
         // [
         //     "value",
         //     {value, label},
@@ -44,6 +45,7 @@ window.app.components.codeEditor = function(propsArg = {}) {
         oninput: function(val) {},
         onfocus: function(val) {},
         onblur: function(val) {},
+        onkeydown: function(e) {},
     });
 
     const extendWatchers = app.utils.extendStore(props, propsArg, "autocomplete");
@@ -123,13 +125,132 @@ window.app.components.codeEditor = function(propsArg = {}) {
         isFieldVisible = true;
     }
 
-    function updateValue(newVal) {
+    // --- undo / redo history -----------------------------------------------
+    // contenteditable + programmatic textContent updates break the native
+    // undo stack, so we keep our own snapshots of {value, caret}.
+    const history = {
+        undos: [],
+        redos: [],
+        // coalesce rapid typing into a single undo step
+        coalesceMs: 350,
+        lastEditAt: 0,
+        // the last committed (stable) state -> this is what we snapshot
+        // BEFORE a new change lands
+        committed: { value: props.value || "", caret: 0 },
+    };
+
+    function getCaret() {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount || !editorContent) {
+            return 0;
+        }
+        const range = sel.getRangeAt(0);
+        const pre = range.cloneRange();
+        pre.selectNodeContents(editorContent);
+        pre.setEnd(range.startContainer, range.startOffset);
+        return pre.toString().length;
+    }
+
+    function applyCaret(pos) {
+        try {
+            const sel = window.getSelection();
+            const range = document.createRange();
+            const walker = document.createTreeWalker(editorContent, NodeFilter.SHOW_TEXT);
+            let node = walker.nextNode();
+            let remaining = pos;
+            while (node) {
+                const len = node.textContent.length;
+                if (remaining <= len) {
+                    range.setStart(node, remaining);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    return;
+                }
+                remaining -= len;
+                node = walker.nextNode();
+            }
+            range.selectNodeContents(editorContent);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        } catch {
+            // ignore caret restore failures
+        }
+    }
+
+    function pushUndo(state) {
+        const top = history.undos[history.undos.length - 1];
+        if (top && top.value == state.value) {
+            return;
+        }
+        history.undos.push(state);
+        if (history.undos.length > 200) {
+            history.undos.shift();
+        }
+    }
+
+    // called right BEFORE the text changes: record the outgoing state so it
+    // can be restored later by undo
+    function recordEdit(force) {
+        const now = Date.now();
+        // coalesce edits that happen within the window (typing burst) into
+        // a single undo step by only pushing the first outgoing state;
+        // programmatic edits (force) always start a new undo step
+        if (force || now - history.lastEditAt > history.coalesceMs) {
+            pushUndo(history.committed);
+        }
+        history.lastEditAt = now;
+        // a fresh user edit invalidates the redo chain
+        history.redos = [];
+    }
+
+    function updateValue(newVal, options = {}) {
+        if (!options.fromHistory) {
+            recordEdit(options.force);
+        }
+
         props.value = newVal;
         props.oninput?.(newVal);
         editorContent.dispatchEvent(new CustomEvent("change", { detail: newVal }));
+
+        // after the change settles, remember it as the new baseline
+        history.committed = { value: newVal, caret: getCaret() };
     }
 
     let isCtrlOrCmdKey = false;
+
+    function undo() {
+        if (!history.undos.length) {
+            return;
+        }
+        // make the current state redoable
+        history.redos.push({ value: editorContent.textContent, caret: getCaret() });
+
+        const state = history.undos.pop();
+        editorContent.textContent = state.value;
+        updateValue(state.value, { fromHistory: true });
+        applyCaret(state.caret);
+        history.committed = { value: state.value, caret: state.caret };
+        history.lastEditAt = 0;
+        closeAutocompleteDropdown();
+    }
+
+    function redo() {
+        if (!history.redos.length) {
+            return;
+        }
+        history.undos.push({ value: editorContent.textContent, caret: getCaret() });
+
+        const state = history.redos.pop();
+        editorContent.textContent = state.value;
+        updateValue(state.value, { fromHistory: true });
+        applyCaret(state.caret);
+        history.committed = { value: state.value, caret: state.caret };
+        history.lastEditAt = 0;
+        closeAutocompleteDropdown();
+    }
+    // -----------------------------------------------------------------------
 
     let valueWatcher;
 
@@ -253,7 +374,7 @@ window.app.components.codeEditor = function(propsArg = {}) {
                                         + word
                                         + editorContent.textContent.substring(match.end + 1);
 
-                                    updateValue(editorContent.textContent);
+                                    updateValue(editorContent.textContent, { force: true });
 
                                     try {
                                         window
@@ -280,6 +401,12 @@ window.app.components.codeEditor = function(propsArg = {}) {
         },
         onkeydown: (e) => {
             isCtrlOrCmdKey = e.ctrlKey || e.metaKey;
+
+            // allow the consumer to intercept (eg. ctrl+enter to run)
+            props.onkeydown?.(e);
+            if (e.defaultPrevented) {
+                return;
+            }
 
             // autocomplete nav
             // -------------------------------------------------------
@@ -330,6 +457,27 @@ window.app.components.codeEditor = function(propsArg = {}) {
                 selectWord(editorContent);
                 return;
             }
+            if (isCtrlOrCmdKey && e.key.toLowerCase() == "z") {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    redo();
+                } else {
+                    undo();
+                }
+                return;
+            }
+
+            if (isCtrlOrCmdKey && e.key.toLowerCase() == "y") {
+                e.preventDefault();
+                redo();
+                return;
+            }
+
+            if (isCtrlOrCmdKey && (e.key === "/" || e.key === "?")) {
+                e.preventDefault();
+                toggleLineComment(editorContent, updateValue);
+                return;
+            }
 
             // prevent "Tab trap"
             if (!props.singleLine && e.key == "Escape" && !dropdown?.isConnected) {
@@ -349,13 +497,13 @@ window.app.components.codeEditor = function(propsArg = {}) {
                     selection.modify("extend", "backward", "character");
                     if (selection.toString()[0] == "\t") {
                         selection.deleteFromDocument();
-                        updateValue(editorContent.textContent);
+                        updateValue(editorContent.textContent, { force: true });
                     } else {
                         // check ahead and restore
                         selection.modify("extend", "forward", "character");
                         if (selection.toString()[0] == "\t") {
                             selection.deleteFromDocument();
-                            updateValue(editorContent.textContent);
+                            updateValue(editorContent.textContent, { force: true });
                         }
                     }
 
@@ -368,7 +516,7 @@ window.app.components.codeEditor = function(propsArg = {}) {
                     range.deleteContents();
                     range.insertNode(document.createTextNode("\t"));
                     range.collapse();
-                    updateValue(editorContent.textContent);
+                    updateValue(editorContent.textContent, { force: true });
                 }
 
                 return;
@@ -392,7 +540,7 @@ window.app.components.codeEditor = function(propsArg = {}) {
     });
 
     const highlightOverlay = t.div({
-        className: "highlight-overlay",
+        className: () => `highlight-overlay language-${props.language}`,
         innerHTML: () => highlight(props.value, props.language),
         onscroll: () => {
             if (editorContent) {
@@ -401,6 +549,21 @@ window.app.components.codeEditor = function(propsArg = {}) {
             }
         },
     });
+
+    const lineNumbersEl = props.lineNumbers
+        ? t.pre({
+            className: "code-editor-line-numbers",
+            "aria-hidden": true,
+            textContent: () => {
+                const total = (props.value || "").split("\n").length || 1;
+                let numbers = "";
+                for (let i = 1; i <= total; i++) {
+                    numbers += i + "\n";
+                }
+                return numbers;
+            },
+        })
+        : null;
 
     const hiddenSubmit = t.button({
         type: "submit",
@@ -416,7 +579,7 @@ window.app.components.codeEditor = function(propsArg = {}) {
             "html-name": () => props.name,
             "html-required": () => props.required || undefined,
             // dprint-ignore
-            className: () => `input code-editor ${props.className} ${props.disabled ? "disabled" : ""} ${props.singleLine ? "single-line" : ""}`,
+            className: () => `input code-editor ${props.className} ${props.disabled ? "disabled" : ""} ${props.singleLine ? "single-line" : ""} ${props.lineNumbers ? "has-line-numbers" : ""}`,
             onclick: () => {
                 editorContent?.focus();
             },
@@ -424,6 +587,7 @@ window.app.components.codeEditor = function(propsArg = {}) {
                 extendWatchers?.forEach((w) => w?.unwatch());
             },
         },
+        lineNumbersEl,
         t.div({ className: "code-editor-container" }, editorContent, highlightOverlay, hiddenSubmit),
     );
 };
@@ -484,6 +648,111 @@ function selectWord() {
     const selection = window.getSelection();
     selection?.modify("move", "forward", "word");
     selection?.modify("extend", "backward", "word");
+}
+
+function toggleLineComment(editorContent, updateValue) {
+    if (!editorContent) {
+        return;
+    }
+
+    const text = editorContent.textContent ?? "";
+    const selection = window.getSelection();
+
+    // convert the current selection into absolute character offsets within the editor
+    let selStart = text.length;
+    let selEnd = text.length;
+    if (selection && selection.rangeCount) {
+        const range = selection.getRangeAt(0);
+        const startRange = range.cloneRange();
+        startRange.selectNodeContents(editorContent);
+        startRange.setEnd(range.startContainer, range.startOffset);
+        selStart = startRange.toString().length;
+
+        const endRange = range.cloneRange();
+        endRange.selectNodeContents(editorContent);
+        endRange.setEnd(range.endContainer, range.endOffset);
+        selEnd = endRange.toString().length;
+    }
+    if (selStart > selEnd) {
+        [selStart, selEnd] = [selEnd, selStart];
+    }
+    const caretPos = selEnd;
+
+    const lines = text.split("\n");
+
+    let startLine = text.slice(0, selStart).split("\n").length - 1;
+    let endLine = text.slice(0, selEnd).split("\n").length - 1;
+    if (startLine < 0) startLine = 0;
+    if (endLine >= lines.length) endLine = lines.length - 1;
+
+    const isMultiLine = endLine > startLine;
+
+    let newText = text;
+    let caretShift = 0;
+
+    if (isMultiLine) {
+        // block comment with /* ... */ wrapping the selection
+        const before = text.slice(0, selStart);
+        const inner = text.slice(selStart, selEnd);
+        const after = text.slice(selEnd);
+
+        const trimmedInner = inner.trim();
+        if (trimmedInner.startsWith("/*") && trimmedInner.endsWith("*/")) {
+            // already wrapped -> unwrap (strip the outer /* and */ markers)
+            const openIdx = inner.indexOf("/*");
+            const closeIdx = inner.lastIndexOf("*/");
+            const body = inner.slice(openIdx + 2, closeIdx).replace(/^ /, "").replace(/ $/, "");
+            newText = before + body + after;
+            caretShift = -2;
+        } else {
+            newText = before + "/* " + inner + " */" + after;
+            caretShift = 3;
+        }
+    } else {
+        // single line -> // comment (same behavior as before)
+        const line = lines[startLine];
+        const trimmed = line.trim();
+        if (trimmed.startsWith("//")) {
+            const idx = line.indexOf("//");
+            lines[startLine] = line.slice(0, idx) + line.slice(idx + 2);
+            caretShift = -2;
+        } else {
+            const indent = line.length - line.trimStart().length;
+            lines[startLine] = line.slice(0, indent) + "//" + line.slice(indent);
+            caretShift = 2;
+        }
+        newText = lines.join("\n");
+    }
+
+    if (newText === text) {
+        return;
+    }
+
+    editorContent.textContent = newText;
+    updateValue?.(newText, { force: true });
+
+    // restore caret within the same line
+    let newCaret = caretPos + (caretPos >= selStart ? caretShift : 0);
+    if (newCaret < 0) newCaret = 0;
+    if (newCaret > newText.length) newCaret = newText.length;
+
+    // place caret back into the contenteditable
+    const range = document.createRange();
+    const walker = document.createTreeWalker(editorContent, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    let remaining = newCaret;
+    while (node) {
+        const len = node.textContent.length;
+        if (remaining <= len) {
+            range.setStart(node, remaining);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            break;
+        }
+        remaining -= len;
+        node = walker.nextNode();
+    }
 }
 
 function getCaretPos(editorContent) {

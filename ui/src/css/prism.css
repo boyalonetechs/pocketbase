@@ -72,3 +72,58 @@ pre[class*="language-"] {
 .token.entity {
     cursor: help;
 }
+
+/* ------------------------------------------------------------------ */
+/* SSMS-like SQL editor colors (applied only to the `pbsql` language)  */
+/* ------------------------------------------------------------------ */
+.language-pbsql {
+    .token.comment,
+    .token.cdata,
+    .token.doctype,
+    .token.prolog {
+        color: var(--sqlCommentColor);
+    }
+    .token.string,
+    .token.char,
+    .token.attr-value {
+        color: var(--sqlStringColor);
+    }
+    .token.identifier {
+        color: var(--sqlIdentifierColor);
+    }
+    .token.keyword,
+    .token.boolean,
+    .token.important,
+    .token.atrule {
+        color: var(--sqlKeywordColor);
+    }
+    .token.system-object {
+        color: var(--sqlSystemColor);
+    }
+    .token.function,
+    .token.class-name {
+        color: var(--sqlFunctionColor);
+    }
+    .token.stored-procedure {
+        color: var(--sqlProcColor);
+        font-weight: bold;
+    }
+    .token.variable {
+        color: var(--sqlParamColor);
+    }
+    .token.operator {
+        color: var(--sqlOperatorColor);
+    }
+    .token.number,
+    .token.constant {
+        color: var(--sqlNumberColor);
+    }
+    .token.punctuation {
+        color: var(--prismPunctuationColor);
+    }
+    .token.sqlcmd {
+        color: var(--sqlCmdColor);
+        background: var(--sqlCmdBgColor);
+        border-radius: 2px;
+    }
+}

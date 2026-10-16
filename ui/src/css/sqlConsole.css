@@ -29,4 +29,137 @@
             -webkit-line-clamp: 3;
         }
     }
+
+    /* thin divider between history entries */
+    .dropdown-item + .dropdown-item {
+        border-top: 1px solid var(--surfaceAlt3Color);
+        border-radius: 0;
+    }
+
+    /* responsive + larger history */
+    @media (max-width: 700px) {
+        width: min(92vw, 560px);
+        max-height: 70vh;
+        overflow-y: auto;
+        .dropdown-item .query {
+            -webkit-line-clamp: 6;
+        }
+    }
 }
+
+.sql-console-run-dropdown {
+    min-width: 190px;
+    .dropdown-item {
+        gap: 8px;
+        .txt-hint {
+            font-size: 0.85em;
+        }
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* SQL Editor                                                          */
+/* ------------------------------------------------------------------ */
+
+.sql-editor-page {
+    .sql-console-field {
+        margin-top: 10px;
+    }
+}
+
+.sql-editor-thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+
+    .sql-editor-file-name {
+        color: var(--surfaceTxtHintColor);
+        font-size: 0.9em;
+        word-break: break-all;
+    }
+}
+
+.sql-editor-image-cell {
+    display: inline-flex;
+    align-items: center;
+
+    .sql-editor-thumb {
+        display: block;
+        max-width: 120px;
+        max-height: 70px;
+        border-radius: 4px;
+        object-fit: contain;
+        background: var(--surfaceAlt2Color);
+    }
+    .sql-editor-image-fallback {
+        display: none;
+        word-break: break-all;
+    }
+    &.img-error {
+        .sql-editor-thumb {
+            display: none;
+        }
+        .sql-editor-image-fallback {
+            display: inline;
+        }
+    }
+}
+
+/* info dropdown */
+.sql-editor-info-dropdown {
+    width: 460px;
+    max-width: 92vw;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    .sql-editor-info {
+        padding: 10px 12px;
+        font-size: 0.9em;
+
+        > strong {
+            display: block;
+            margin: 10px 0 4px;
+            &:first-child {
+                margin-top: 0;
+            }
+        }
+        ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        li {
+            margin: 2px 0;
+            line-height: 1.35;
+        }
+        code {
+            padding: 0 4px;
+            border-radius: 4px;
+            background: var(--surfaceAlt3Color);
+            font-family: var(--monospaceFontFamily);
+            font-size: 0.9em;
+        }
+    }
+}
+
+/* results */
+.sql-editor-result {
+    margin-top: 10px;
+
+    .sql-editor-result-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+    .sql-editor-result-heading small {
+        font-weight: normal;
+    }
+    .page-table-wrapper {
+        max-height: 60vh;
+        overflow: auto;
+    }
+}
+

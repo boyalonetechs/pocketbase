@@ -144,6 +144,48 @@ window.app.components.recordFileThumb = function(propsArg = {}) {
                 return img;
             }
 
+            if (data.fileType == "video") {
+                const video = t.video({
+                    draggable: false,
+                    muted: true,
+                    playsInline: true,
+                    preload: "metadata",
+                    src: () => data.previewURL,
+                    onerror: (err) => {
+                        console.warn("[recordFileThumb] video load err:", err);
+                        data.isPreviewLoading = false;
+                        video?._semaphoreRelease?.();
+                    },
+                    onloadeddata: () => {
+                        data.isPreviewLoading = false;
+                        video?._semaphoreRelease?.();
+                    },
+                    onmount: (el) => {
+                        data.isPreviewLoading = true;
+
+                        el._semaphoreRelease = semaphoreAdd(async () => {
+                            try {
+                                data.previewToken = await app.getFileToken(props.record.collectionId);
+
+                                // append the media fragment to force the browser to
+                                // render the first frame as a thumbnail
+                                data.previewURL = app.pb.files.getURL(props.record, props.filename, {
+                                    token: data.previewToken,
+                                }) + "#t=0.1";
+                            } catch (err) {
+                                console.warn(err);
+                            }
+                        });
+                    },
+                    onunmount: (el) => {
+                        data.isPreviewLoading = false;
+                        el._semaphoreRelease?.();
+                    },
+                });
+
+                return [video, t.i({ className: "ri-play-circle-fill thumb-play-overlay", ariaHidden: true })];
+            }
+
             return t.i({ className: app.utils.fileTypeIcons[data.fileType] || "ri-file-line", ariaHidden: true });
         },
     );

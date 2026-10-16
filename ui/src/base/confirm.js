@@ -13,10 +13,11 @@ window.app.modals = window.app.modals || {};
  * app.modals.confirm("Are you sure?", () => console.log("confirmed"))
  * ```
  *
- * @param {string|Element} textOrElem The confirmation message.
- * @param {function} [yesCallback]
- * @param {function} [noCallback]
- * @param {Object}   [settings]
+ * @param  {string|Element} textOrElem The confirmation message.
+ * @param  {function} [yesCallback]
+ * @param  {function} [noCallback]
+ * @param  {Object}   [settings]
+ * @return {Element} The confirmation modal element.
  */
 window.app.modals.confirm = function(textOrElem, yesCallback, noCallback, settings = {
     className: undefined,
@@ -37,6 +38,8 @@ window.app.modals.confirm = function(textOrElem, yesCallback, noCallback, settin
     }
 
     window.app.modals.open(confirmElem);
+
+    return confirmElem;
 };
 
 const data = store({

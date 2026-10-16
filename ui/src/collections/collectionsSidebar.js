@@ -2,9 +2,10 @@ const PINNED_STORAGE_KEY = "pbPinnedCollections";
 
 const compactThreshold = 12;
 
-export function collectionsSidebar() {
+export function collectionsSidebar(opts = {}) {
     const data = store({
         search: "",
+        navigate: !!opts.navigate,
         pinned: app.utils.getLocalHistory(PINNED_STORAGE_KEY, []),
         get filteredCollections() {
             if (!data.search.length) {
@@ -192,12 +193,27 @@ export function collectionsSidebar() {
                                 app.modals.openCollectionUpsert({}, {
                                     onsave: (newCollection) => {
                                         app.store.activeCollection = newCollection.id;
+
+                                        if (data.navigate) {
+                                            window.location.hash = `#/collections?collection=${newCollection.name}`;
+                                        }
                                     },
                                 });
                             },
                         },
                         t.i({ className: "ri-add-line", ariaHidden: true }),
                         t.span({ textContent: "New collection" }),
+                    ),
+                    t.button(
+                        {
+                            type: "button",
+                            className: "btn outline block m-t-sm",
+                            onclick: () => {
+                                window.location.hash = "#/collections/sql-editor";
+                            },
+                        },
+                        t.i({ className: "ri-terminal-box-line", ariaHidden: true }),
+                        t.span({ textContent: "SQL Editor" }),
                     ),
                 ),
             ];
@@ -220,6 +236,12 @@ function collectionItem(collection, data) {
             onclick: (e) => {
                 e.preventDefault();
                 app.store.activeCollection = collection.name;
+
+                // when the sidebar is rendered outside of the collections page
+                // (e.g. in the SQL editor) navigating is required to actually open it
+                if (data.navigate) {
+                    window.location.hash = `#/collections?collection=${collection.name}`;
+                }
             },
         },
         t.i({
